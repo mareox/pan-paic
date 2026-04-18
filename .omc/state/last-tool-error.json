@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"UV_CACHE_DIR=/home/mareox/.cache/uv uv run ruff check --fix tests/unit/test_poller.py tests/unit/test_reports_api.py 2>&1\",\"timeout\":30000,\"description\":\"Auto-fix ruff issues\"}",
+  "error": "Exit code 1\nE501 Line too long (102 > 100)\n   --> tests/unit/test_poller.py:174:101\n    |\n172 |     mock_session = MagicMock()\n173 |\n174 |     with patch(\"paic.scheduler.poller.fetch_prisma_ips\", side_effect=PrismaAuthError(\"unauthorized\")):\n    |                                                                                                     ^^\n175 |         await svc._do_poll(tenant, mock_session)\n    |\n\nE501 Line too long (110 > 100)\n   --> tests/unit/test_poller.py:188:101\n    |\n186 |    ...",
+  "timestamp": "2026-04-18T09:22:34.723Z",
+  "retry_count": 14
+}

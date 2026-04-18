@@ -1,0 +1,58 @@
+{
+  "status": "success",
+  "result": [
+    {
+      "serviceType": "gp_gateway",
+      "addrType": "active",
+      "addressDetails": [
+        {
+          "address": "198.51.100.1/32",
+          "serviceType": "gp_gateway",
+          "addressType": "active",
+          "node_name": ["gw-us-east-1"],
+          "create_time": 1700000000,
+          "allow_listed": false
+        },
+        {
+          "address": "198.51.100.2/32",
+          "serviceType": "gp_gateway",
+          "addressType": "active",
+          "node_name": ["gw-us-east-2"],
+          "create_time": 1700000001,
+          "allow_listed": false
+        }
+      ],
+      "zone": "us-east"
+    },
+    {
+      "serviceType": "remote_network",
+      "addrType": "reserved",
+      "addressDetails": [
+        {
+          "address": "203.0.113.10/32",
+          "serviceType": "remote_network",
+          "addressType": "reserved",
+          "node_name": ["rn-eu-west-1"],
+          "create_time": 1700000100,
+          "allow_listed": true
+        }
+      ],
+      "zone": "eu-west"
+    },
+    {
+      "serviceType": "gp_portal",
+      "addrType": "active",
+      "addressDetails": [
+        {
+          "address": "2001:db8::1/128",
+          "serviceType": "gp_portal",
+          "addressType": "active",
+          "node_name": ["portal-apac-1"],
+          "create_time": 1700000200,
+          "allow_listed": false
+        }
+      ],
+      "zone": "apac"
+    }
+  ]
+}
