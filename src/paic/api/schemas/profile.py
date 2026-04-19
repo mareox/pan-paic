@@ -21,7 +21,6 @@ class ProfileCreate(BaseModel):
     max_waste: float | None = Field(default=None, ge=0.0, le=1.0)
     format: str = Field(..., min_length=1, max_length=16)
     filter_spec_json: str | None = None
-    schedule_cron: str | None = Field(default=None, max_length=128)
 
     @model_validator(mode="after")
     def _validate_mode_params(self) -> ProfileCreate:
@@ -45,7 +44,6 @@ class ProfileUpdate(BaseModel):
     max_waste: float | None = Field(default=None, ge=0.0, le=1.0)
     format: str | None = Field(default=None, min_length=1, max_length=16)
     filter_spec_json: str | None = None
-    schedule_cron: str | None = Field(default=None, max_length=128)
 
     @model_validator(mode="after")
     def _validate_format(self) -> ProfileUpdate:
@@ -68,6 +66,5 @@ class ProfileResponse(BaseModel):
     max_waste: float | None
     format: str
     filter_spec_json: str | None
-    schedule_cron: str | None
     created_at: datetime
     updated_at: datetime

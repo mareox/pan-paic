@@ -1,4 +1,10 @@
-"""Profile CRUD endpoints + render action."""
+"""Profile CRUD endpoints + render action.
+
+A *Profile* is a saved bundle of query settings: filter spec, aggregation mode,
+optional budget/max_waste, output format.  No credentials are persisted —
+``/render`` requires ``api_key`` + ``prod`` in the request body, exactly like
+``/api/query``.
+"""
 
 from __future__ import annotations
 
@@ -7,11 +13,14 @@ import json
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
-from paic.aggregation.engine import summarize
+from paic.api.reports import (
+    QueryRequest,
+    _build_output_records,
+    _fetch_filter_summarize,
+)
 from paic.api.schemas.profile import ProfileCreate, ProfileResponse, ProfileUpdate
-from paic.core.filters import FilterSpec, apply_filters
-from paic.core.types import PrefixRecord
-from paic.db.models import Profile, Tenant
+from paic.core.filters import FilterSpec
+from paic.db.models import Profile
 from paic.db.session import get_session
 from paic.renderers import render
 
@@ -33,36 +42,6 @@ def _to_response(profile: Profile) -> ProfileResponse:
 
 
 # ---------------------------------------------------------------------------
-# Stub prefix list used until US-008 Snapshot poller is integrated.
-# Once the Snapshot table exists, replace this with a DB query keyed by
-# tenant_id, ordered by fetch time descending, limit 1.
-# ---------------------------------------------------------------------------
-
-_STUB_PREFIXES: list[PrefixRecord] = [
-    PrefixRecord(
-        prefix="10.0.0.0/24", service_type="remote_network", addr_type="active",
-        region="us-west", country="US", location_name="Los Angeles", ip_version=4,
-    ),
-    PrefixRecord(
-        prefix="10.0.1.0/24", service_type="remote_network", addr_type="active",
-        region="us-east", country="US", location_name="New York", ip_version=4,
-    ),
-    PrefixRecord(
-        prefix="192.168.0.0/24", service_type="gp_gateway", addr_type="active",
-        region="eu-west", country="DE", location_name="Frankfurt", ip_version=4,
-    ),
-    PrefixRecord(
-        prefix="172.16.0.0/24", service_type="gp_gateway", addr_type="active",
-        region="apac", country="JP", location_name="Tokyo", ip_version=4,
-    ),
-    PrefixRecord(
-        prefix="2001:db8::/48", service_type="remote_network", addr_type="active",
-        region="us-west", country="US", location_name="Seattle", ip_version=6,
-    ),
-]
-
-
-# ---------------------------------------------------------------------------
 # CRUD
 # ---------------------------------------------------------------------------
 
@@ -80,7 +59,6 @@ def create_profile(
             detail=f"Profile with name '{body.name}' already exists.",
         )
 
-    # Validate filter_spec_json is a parseable FilterSpec when provided.
     if body.filter_spec_json is not None:
         try:
             FilterSpec.model_validate_json(body.filter_spec_json)
@@ -97,7 +75,6 @@ def create_profile(
         max_waste=body.max_waste,
         format=body.format,
         filter_spec_json=body.filter_spec_json,
-        schedule_cron=body.schedule_cron,
     )
     db.add(profile)
     db.commit()
@@ -151,8 +128,6 @@ def update_profile(
                 detail=f"filter_spec_json is not a valid FilterSpec: {exc}",
             ) from exc
         profile.filter_spec_json = body.filter_spec_json
-    if body.schedule_cron is not None:
-        profile.schedule_cron = body.schedule_cron
 
     db.commit()
     db.refresh(profile)
@@ -170,56 +145,62 @@ def delete_profile(profile_id: str, db: Session = Depends(get_session)) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Render action
+# Render action — applies a profile's saved settings on top of caller-supplied
+# api_key + prod.  No credentials live in the DB.
 # ---------------------------------------------------------------------------
 
 
-@router.get("/{profile_id}/render")
-def render_profile(
+class ProfileRenderRequest(QueryRequest):
+    """Body for /render: same as QueryRequest but profile fields are ignored.
+
+    The profile's ``mode``, ``budget``, ``max_waste``, ``format``, and
+    ``filter`` always win.  The caller supplies only the auth fields
+    (``api_key``, ``prod``, ``base_url_override``) and the upstream
+    ``service_type`` / ``addr_type`` filters that go to Prisma.
+    """
+
+
+@router.post("/{profile_id}/render")
+async def render_profile(
     profile_id: str,
-    tenant_id: str,
+    body: ProfileRenderRequest,
     db: Session = Depends(get_session),  # noqa: B008
 ) -> Response:
-    """Apply profile to tenant prefix data and return rendered bytes.
-
-    Until US-008 (Snapshot poller) lands, a small in-memory stub list is used
-    when no real snapshot data is in the DB.  Once US-008 is integrated,
-    replace _STUB_PREFIXES with a query against the Snapshot table:
-        db.query(Snapshot).filter_by(tenant_id=tenant_id).order_by(Snapshot.fetched_at.desc()).first()
-    """
+    """Apply a saved profile to live Prisma data and return rendered bytes."""
     profile = db.get(Profile, profile_id)
     if not profile:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found.")
 
-    tenant = db.get(Tenant, tenant_id)
-    if not tenant:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found.")
-
-    # TODO(US-008): replace with real snapshot lookup once Snapshot table exists.
-    records: list[PrefixRecord] = list(_STUB_PREFIXES)
-
-    if not records:
-        # Tenant has no data yet — return empty render.
-        content_type = _CONTENT_TYPES.get(profile.format, "application/octet-stream")
-        return Response(content=b"", media_type=content_type)
-
-    # Apply filter spec if present.
+    # Build a QueryRequest from caller's auth fields + profile's settings.
     if profile.filter_spec_json:
-        spec = FilterSpec.model_validate(json.loads(profile.filter_spec_json))
-        records = apply_filters(records, spec)
+        filter_spec = FilterSpec.model_validate(json.loads(profile.filter_spec_json))
+    else:
+        filter_spec = FilterSpec()
 
-    # Aggregate.
-    prefixes = [r.prefix for r in records]
-    agg = summarize(
-        prefixes,
-        profile.mode,  # type: ignore[arg-type]
+    req = QueryRequest(
+        api_key=body.api_key,
+        prod=body.prod,
+        base_url_override=body.base_url_override,
+        service_type=body.service_type,
+        addr_type=body.addr_type,
+        filter=filter_spec,
+        mode=profile.mode,  # type: ignore[arg-type]
         budget=profile.budget,
         max_waste=profile.max_waste,
+        format=profile.format,
     )
 
-    # Render using aggregated prefix list (as plain dicts for renderer compat).
-    rendered_records = [{"prefix": p} for p in agg.output_prefixes]
-    content = render(rendered_records, profile.format)
+    filtered, agg = await _fetch_filter_summarize(req)
+    output_records = _build_output_records(filtered, agg.output_prefixes)
+    content = render(output_records, profile.format)
 
-    content_type = _CONTENT_TYPES.get(profile.format, "application/octet-stream")
-    return Response(content=content, media_type=content_type)
+    return Response(
+        content=content,
+        media_type=_CONTENT_TYPES.get(profile.format, "application/octet-stream"),
+        headers={
+            "X-Input-Count": str(agg.input_count),
+            "X-Output-Count": str(agg.output_count),
+            "X-Waste-Ratio": f"{agg.waste_ratio:.6f}",
+            "X-Source-Prod": req.prod,
+        },
+    )

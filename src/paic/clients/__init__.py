@@ -2,22 +2,28 @@
 
 from paic.clients.models import AddressDetail, PrismaResponse, ResultEntry
 from paic.clients.prisma import (
+    KNOWN_PRODS,
     PrismaAuthError,
     PrismaError,
+    PrismaRateLimitError,
     PrismaSchemaError,
     PrismaUpstreamError,
     discover_enums,
     fetch_prisma_ips,
+    known_prods,
 )
 
 __all__ = [
     "AddressDetail",
-    "PrismaResponse",
-    "ResultEntry",
-    "PrismaError",
+    "KNOWN_PRODS",
     "PrismaAuthError",
-    "PrismaUpstreamError",
+    "PrismaError",
+    "PrismaRateLimitError",
+    "PrismaResponse",
     "PrismaSchemaError",
-    "fetch_prisma_ips",
+    "PrismaUpstreamError",
+    "ResultEntry",
     "discover_enums",
+    "fetch_prisma_ips",
+    "known_prods",
 ]

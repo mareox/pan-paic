@@ -7,9 +7,9 @@ export default function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
   return (
     <div
       role="alert"
-      className="flex items-start gap-2 rounded border border-gtm-unit42Red/30 bg-gtm-unit42Red/10
-                 px-3 py-2 text-sm text-gtm-unit42Red
-                 dark:border-gtm-unit42Red/20 dark:bg-gtm-unit42Red/10 dark:text-[#e05535]"
+      className="flex items-start gap-2 rounded border border-rose-500/30 bg-rose-500/10
+                 px-3 py-2 text-sm text-rose-700
+                 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400"
     >
       <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round"
@@ -20,7 +20,7 @@ export default function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
         <button
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="ml-2 text-gtm-unit42Red/70 hover:text-gtm-unit42Red transition-colors"
+          className="ml-2 text-rose-500/70 hover:text-rose-500 transition-colors"
         >
           ×
         </button>

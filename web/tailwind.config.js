@@ -13,32 +13,32 @@ export default {
         mono:  ['DM Mono', 'ui-monospace', 'monospace'],
       },
       colors: {
-        // Cyber Orange scale — 500 = primary brand (#FA582D)
-        cyber: {
-          50:  '#FFF3EE',
-          100: '#FFBF9C',
-          200: '#FF9E75',
-          300: '#FF7F56',
-          400: '#FF724D',
-          500: '#FA582D',
-          600: '#B23808',
-          700: '#8C2C06',
-          800: '#661F04',
-          900: '#190000',
+        // Brand — Indigo-based (Tailwind indigo scale aliased for convenience)
+        brand: {
+          50:  '#EEF2FF',
+          100: '#E0E7FF',
+          200: '#C7D2FE',
+          300: '#A5B4FC',
+          400: '#818CF8',
+          500: '#6366F1',
+          600: '#4F46E5',
+          700: '#4338CA',
+          800: '#3730A3',
+          900: '#312E81',
         },
-        // GTM secondary palette — use sparingly for status/badges
-        gtm: {
-          cloudBlue:    '#00C0E8',
-          cortexGreen:  '#00CC66',
-          unit42Red:    '#C84727',
-          strataYellow: '#FFCB06',
+        // Semantic status palette — replaces GTM names
+        status: {
+          ok:    '#10B981', // emerald-500
+          warn:  '#F59E0B', // amber-500
+          error: '#F43F5E', // rose-500
+          info:  '#0EA5E9', // sky-500
         },
       },
       backgroundImage: {
-        // Cyber Orange → near-black gradient (top→bottom, per brand spec)
-        'cyber-gradient': 'linear-gradient(to bottom, #FA582D, #190000)',
+        // Indigo → near-black gradient
+        'brand-gradient': 'linear-gradient(to bottom, #4338CA, #0F172A)',
         // Diagonal variant
-        'cyber-gradient-diagonal': 'linear-gradient(135deg, #FA582D, #190000)',
+        'brand-gradient-diagonal': 'linear-gradient(135deg, #4338CA, #0F172A)',
       },
     },
   },

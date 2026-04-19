@@ -10,7 +10,6 @@ from fastapi.testclient import TestClient
 
 from paic.api.observability import router
 from paic.core.logging import RedactionFilter, _JsonFormatter, configure_logging
-from paic.core.metrics import set_scheduler_ready
 
 # ---------------------------------------------------------------------------
 # Test app fixture — mounts the observability router without touching main.py
@@ -30,14 +29,6 @@ def client(app: FastAPI) -> TestClient:
     return TestClient(app)
 
 
-@pytest.fixture(autouse=True)
-def reset_scheduler_flag():
-    """Ensure scheduler flag is False before each test."""
-    set_scheduler_ready(False)
-    yield
-    set_scheduler_ready(False)
-
-
 # ---------------------------------------------------------------------------
 # /healthz
 # ---------------------------------------------------------------------------
@@ -54,22 +45,11 @@ def test_healthz_returns_ok_body(client: TestClient) -> None:
 
 
 # ---------------------------------------------------------------------------
-# /readyz
+# /readyz — v0.2 only checks DB connectivity (default sqlite is always reachable)
 # ---------------------------------------------------------------------------
 
 
-def test_readyz_503_when_scheduler_not_ready(client: TestClient) -> None:
-    """Without scheduler flag set, /readyz must return 503."""
-    response = client.get("/readyz")
-    assert response.status_code == 503
-    body = response.json()
-    assert body["status"] == "not_ready"
-    assert any("scheduler" in r for r in body["reasons"])
-
-
-def test_readyz_200_when_ready(client: TestClient) -> None:
-    """After setting scheduler ready (DB is SQLite in-memory — always reachable), expect 200."""
-    set_scheduler_ready(True)
+def test_readyz_200_when_db_reachable(client: TestClient) -> None:
     response = client.get("/readyz")
     assert response.status_code == 200
     assert response.json() == {"status": "ready"}
@@ -90,13 +70,13 @@ def test_metrics_content_type(client: TestClient) -> None:
     assert response.headers["content-type"].startswith("text/plain")
 
 
-def test_metrics_contains_all_metric_names(client: TestClient) -> None:
+def test_metrics_contains_query_metric(client: TestClient) -> None:
+    # Force-import the metrics module so the counter is registered.
+    import paic.core.metrics  # noqa: F401
+
     response = client.get("/metrics")
     body = response.text
-    assert "paic_poll_total" in body
-    assert "paic_poll_failures_total" in body
-    assert "paic_webhook_delivery_total" in body
-    assert "paic_prefix_count" in body
+    assert "paic_query_total" in body
 
 
 # ---------------------------------------------------------------------------
@@ -108,7 +88,6 @@ def test_logging_redacts_api_key() -> None:
     """Messages containing api_key=<secret> must have the value redacted."""
     configure_logging(level="DEBUG")
 
-    # Capture log output via a StringIO handler
     stream = io.StringIO()
     handler = logging.StreamHandler(stream)
     handler.setFormatter(_JsonFormatter())

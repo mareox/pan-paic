@@ -1,11 +1,12 @@
-"""Observability API router: /healthz, /readyz, /metrics."""
+"""Observability API router: /healthz, /readyz, /metrics.
+
+PAIC v0.2 has no scheduler — the readiness probe only checks DB connectivity.
+"""
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, PlainTextResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from sqlalchemy import text
-
-from paic.core.metrics import is_scheduler_ready
 
 router = APIRouter()
 
@@ -18,10 +19,9 @@ def healthz() -> dict[str, str]:
 
 @router.get("/readyz")
 def readyz() -> JSONResponse:
-    """Readiness probe — checks DB connectivity and scheduler state."""
+    """Readiness probe — checks DB connectivity for profile storage."""
     reasons: list[str] = []
 
-    # --- DB check ---
     try:
         from paic.db.base import engine
 
@@ -29,10 +29,6 @@ def readyz() -> JSONResponse:
             conn.execute(text("SELECT 1"))
     except Exception as exc:  # noqa: BLE001
         reasons.append(f"db: {exc}")
-
-    # --- Scheduler check ---
-    if not is_scheduler_ready():
-        reasons.append("scheduler: not started")
 
     if reasons:
         return JSONResponse(

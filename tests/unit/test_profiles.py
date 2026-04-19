@@ -1,4 +1,4 @@
-"""Unit tests for the Profile API endpoints."""
+"""Unit tests for the Profile API endpoints (v0.2 — settings-only profiles)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from paic.api.profiles import router
+import paic.api.reports as reports_mod
+from paic.api.profiles import router as profile_router
+from paic.api.reports import router as reports_router
+from paic.clients.models import AddressDetail, PrismaResponse, ResultEntry
 from paic.db.base import Base
 from paic.db.session import get_session
 
@@ -33,7 +36,7 @@ def client():
             db.close()
 
     app = FastAPI()
-    app.include_router(router)
+    app.include_router(profile_router)
     app.dependency_overrides[get_session] = override_get_session
 
     with TestClient(app) as c:
@@ -42,30 +45,39 @@ def client():
     Base.metadata.drop_all(engine)
 
 
-# Minimal valid profile body.
-_VALID_PROFILE = {
-    "name": "test-profile",
-    "mode": "lossless",
-    "format": "json",
-}
-
-# A profile that also creates a tenant so render works.
-_VALID_EXACT = {
-    "name": "exact-profile",
-    "mode": "exact",
-    "format": "json",
-}
-
-
-def _create_tenant(client: TestClient, name: str = "acme") -> dict:
-    """Helper stub — use render_client fixture for render tests instead."""
-    raise NotImplementedError("Use render_client fixture instead")
-
-
 @pytest.fixture()
-def render_client():
-    """TestClient with BOTH tenants and profiles routers for render tests."""
-    from paic.api.tenants import router as tenant_router
+def render_client(monkeypatch: pytest.MonkeyPatch):
+    """TestClient with profile router mounted AND fetch_prisma_ips stubbed."""
+
+    async def fake_fetch(api_key, prod="prod", **kw):  # noqa: ARG001
+        return PrismaResponse(
+            status="success",
+            result=[
+                ResultEntry(
+                    serviceType="gp_gateway",
+                    addrType="active",
+                    addressDetails=[
+                        AddressDetail(
+                            address="1.1.1.0/32",
+                            serviceType="gp_gateway",
+                            addressType="active",
+                        ),
+                        AddressDetail(
+                            address="1.1.1.1/32",
+                            serviceType="gp_gateway",
+                            addressType="active",
+                        ),
+                        AddressDetail(
+                            address="2.2.2.0/24",
+                            serviceType="remote_network",
+                            addressType="active",
+                        ),
+                    ],
+                ),
+            ],
+        )
+
+    monkeypatch.setattr(reports_mod, "fetch_prisma_ips", fake_fetch)
 
     engine = create_engine(
         "sqlite:///:memory:",
@@ -83,14 +95,22 @@ def render_client():
             db.close()
 
     app = FastAPI()
-    app.include_router(router)
-    app.include_router(tenant_router)
+    app.include_router(profile_router)
+    app.include_router(reports_router)
     app.dependency_overrides[get_session] = override_get_session
 
     with TestClient(app) as c:
         yield c
 
     Base.metadata.drop_all(engine)
+
+
+# Minimal valid profile body.
+_VALID_PROFILE = {
+    "name": "test-profile",
+    "mode": "lossless",
+    "format": "json",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -142,12 +162,22 @@ def test_create_profile_waste_mode_with_max_waste_accepted(client: TestClient) -
 def test_create_profile_response_shape(client: TestClient) -> None:
     resp = client.post("/api/profiles", json=_VALID_PROFILE)
     data = resp.json()
-    for field in ("id", "name", "mode", "budget", "max_waste", "format",
-                  "filter_spec_json", "schedule_cron", "created_at", "updated_at"):
+    for field in (
+        "id", "name", "mode", "budget", "max_waste", "format",
+        "filter_spec_json", "created_at", "updated_at",
+    ):
         assert field in data, f"missing field: {field}"
     assert data["name"] == "test-profile"
     assert data["mode"] == "lossless"
     assert data["format"] == "json"
+
+
+def test_profile_response_does_not_include_credentials(client: TestClient) -> None:
+    """Profiles are settings-only; the response must not leak any credential field."""
+    resp = client.post("/api/profiles", json=_VALID_PROFILE)
+    data = resp.json()
+    for forbidden in ("api_key", "api_key_ciphertext", "api_key_nonce", "tenant_id"):
+        assert forbidden not in data, f"profile response leaks {forbidden}"
 
 
 # ---------------------------------------------------------------------------
@@ -156,31 +186,25 @@ def test_create_profile_response_shape(client: TestClient) -> None:
 
 
 def test_crud_round_trip(client: TestClient) -> None:
-    # Create
     resp = client.post("/api/profiles", json=_VALID_PROFILE)
     assert resp.status_code == 201
     profile_id = resp.json()["id"]
 
-    # Read list
     resp = client.get("/api/profiles")
     assert resp.status_code == 200
     assert len(resp.json()) == 1
 
-    # Read single
     resp = client.get(f"/api/profiles/{profile_id}")
     assert resp.status_code == 200
     assert resp.json()["id"] == profile_id
 
-    # Update
     resp = client.put(f"/api/profiles/{profile_id}", json={"name": "renamed-profile"})
     assert resp.status_code == 200
     assert resp.json()["name"] == "renamed-profile"
 
-    # Delete
     resp = client.delete(f"/api/profiles/{profile_id}")
     assert resp.status_code == 204
 
-    # Gone
     resp = client.get(f"/api/profiles/{profile_id}")
     assert resp.status_code == 404
 
@@ -206,11 +230,6 @@ def test_delete_profile_not_found(client: TestClient) -> None:
     assert resp.status_code == 404
 
 
-# ---------------------------------------------------------------------------
-# Name uniqueness → 409
-# ---------------------------------------------------------------------------
-
-
 def test_duplicate_name_returns_409(client: TestClient) -> None:
     client.post("/api/profiles", json=_VALID_PROFILE)
     resp = client.post("/api/profiles", json=_VALID_PROFILE)
@@ -218,45 +237,40 @@ def test_duplicate_name_returns_409(client: TestClient) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Render endpoint
+# Render endpoint — calls live Prisma fetch (stubbed) using profile settings.
 # ---------------------------------------------------------------------------
+
+_AUTH_BODY = {
+    "api_key": "shh",
+    "prod": "prod",
+    "service_type": "all",
+    "addr_type": "all",
+    "filter": {},
+    "mode": "exact",
+    "format": "json",
+}
 
 
 def test_render_returns_200_with_json_content_type(render_client: TestClient) -> None:
-    # Create tenant.
-    tenant_resp = render_client.post(
-        "/api/tenants", json={"name": "acme", "api_key": "secret"}
-    )
-    assert tenant_resp.status_code == 201
-    tenant_id = tenant_resp.json()["id"]
-
-    # Create profile.
     profile_resp = render_client.post(
         "/api/profiles", json={"name": "render-test", "mode": "lossless", "format": "json"}
     )
     assert profile_resp.status_code == 201
     profile_id = profile_resp.json()["id"]
 
-    # Render.
-    resp = render_client.get(f"/api/profiles/{profile_id}/render?tenant_id={tenant_id}")
+    resp = render_client.post(f"/api/profiles/{profile_id}/render", json=_AUTH_BODY)
     assert resp.status_code == 200
     assert "application/json" in resp.headers["content-type"]
 
 
-def test_render_returns_correct_content_type_per_format(render_client: TestClient) -> None:
-    tenant_resp = render_client.post(
-        "/api/tenants", json={"name": "acme2", "api_key": "secret"}
-    )
-    tenant_id = tenant_resp.json()["id"]
-
-    format_ct_pairs = [
+def test_render_uses_profile_format(render_client: TestClient) -> None:
+    for fmt, expected_ct in [
         ("csv", "text/csv"),
         ("edl", "text/plain"),
         ("yaml", "application/yaml"),
         ("plain", "text/plain"),
         ("xml", "application/xml"),
-    ]
-    for fmt, expected_ct in format_ct_pairs:
+    ]:
         profile_resp = render_client.post(
             "/api/profiles",
             json={"name": f"render-{fmt}", "mode": "lossless", "format": fmt},
@@ -264,39 +278,19 @@ def test_render_returns_correct_content_type_per_format(render_client: TestClien
         assert profile_resp.status_code == 201, f"failed to create profile for {fmt}"
         profile_id = profile_resp.json()["id"]
 
-        resp = render_client.get(f"/api/profiles/{profile_id}/render?tenant_id={tenant_id}")
+        resp = render_client.post(f"/api/profiles/{profile_id}/render", json=_AUTH_BODY)
         assert resp.status_code == 200, f"render failed for {fmt}: {resp.text}"
-        assert expected_ct in resp.headers["content-type"], (
-            f"wrong content-type for {fmt}: {resp.headers['content-type']}"
-        )
-
-
-def test_render_tenant_not_found_returns_404(render_client: TestClient) -> None:
-    profile_resp = render_client.post(
-        "/api/profiles", json={"name": "orphan-render", "mode": "exact", "format": "json"}
-    )
-    profile_id = profile_resp.json()["id"]
-    resp = render_client.get(f"/api/profiles/{profile_id}/render?tenant_id=nonexistent")
-    assert resp.status_code == 404
+        assert expected_ct in resp.headers["content-type"]
 
 
 def test_render_profile_not_found_returns_404(render_client: TestClient) -> None:
-    tenant_resp = render_client.post(
-        "/api/tenants", json={"name": "acme3", "api_key": "secret"}
-    )
-    tenant_id = tenant_resp.json()["id"]
-    resp = render_client.get(f"/api/profiles/nonexistent/render?tenant_id={tenant_id}")
+    resp = render_client.post("/api/profiles/nonexistent/render", json=_AUTH_BODY)
     assert resp.status_code == 404
 
 
 def test_render_with_filter_spec(render_client: TestClient) -> None:
     """Render with a filter_spec_json that restricts service_type."""
     import json
-
-    tenant_resp = render_client.post(
-        "/api/tenants", json={"name": "filtered-tenant", "api_key": "secret"}
-    )
-    tenant_id = tenant_resp.json()["id"]
 
     filter_spec = json.dumps({"service_types": ["remote_network"]})
     profile_resp = render_client.post(
@@ -311,8 +305,8 @@ def test_render_with_filter_spec(render_client: TestClient) -> None:
     assert profile_resp.status_code == 201
     profile_id = profile_resp.json()["id"]
 
-    resp = render_client.get(f"/api/profiles/{profile_id}/render?tenant_id={tenant_id}")
+    resp = render_client.post(f"/api/profiles/{profile_id}/render", json=_AUTH_BODY)
     assert resp.status_code == 200
     data = resp.json()
-    # Only remote_network prefixes from stub should appear.
-    assert data["summary"]["count"] > 0
+    assert data["summary"]["count"] == 1
+    assert data["records"][0]["prefix"] == "2.2.2.0/24"

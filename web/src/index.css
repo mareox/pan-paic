@@ -48,40 +48,40 @@
 @layer components {
   /* ────────────────────────────────────────────────────────────
      BUTTONS
-     Primary = Cyber Orange fill  (brand CTA spec)
-     Stroke  = 2px Cyber Orange outline  (brand secondary CTA)
+     Primary = Indigo fill  (brand CTA)
+     Stroke  = 2px Indigo outline  (brand secondary CTA)
      Secondary / ghost = neutral utility buttons for table actions
   ──────────────────────────────────────────────────────────── */
   .btn {
     @apply inline-flex items-center gap-1.5 rounded
            text-sm font-bold uppercase tracking-wider
            transition-colors
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-500
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* Filled — Cyber Orange */
+  /* Filled — Indigo */
   .btn-primary {
     @apply btn px-6 py-2.5
-           bg-cyber-500 text-white
-           hover:bg-cyber-600 active:bg-cyber-700;
+           bg-indigo-600 text-white
+           hover:bg-indigo-700 active:bg-indigo-800;
   }
 
-  /* Stroke — 2 px Cyber Orange border, no fill */
+  /* Stroke — 2 px Indigo border, no fill */
   .btn-stroke {
     @apply btn px-6 py-2.5
-           border-2 border-cyber-500 text-cyber-500 bg-transparent
-           hover:bg-cyber-500 hover:text-white
-           active:bg-cyber-600 active:border-cyber-600
-           dark:text-cyber-400 dark:border-cyber-400
-           dark:hover:bg-cyber-500 dark:hover:text-white dark:hover:border-cyber-500;
+           border-2 border-indigo-600 text-indigo-600 bg-transparent
+           hover:bg-indigo-600 hover:text-white
+           active:bg-indigo-700 active:border-indigo-700
+           dark:text-indigo-400 dark:border-indigo-400
+           dark:hover:bg-indigo-600 dark:hover:text-white dark:hover:border-indigo-600;
   }
 
   /* Compact neutral — table / form cancel */
   .btn-secondary {
     @apply inline-flex items-center gap-1.5 rounded px-3 py-1.5
            text-sm font-medium transition-colors
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-500
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600
            disabled:opacity-50 disabled:cursor-not-allowed
            bg-slate-100 text-slate-700
            hover:bg-slate-200
@@ -93,16 +93,16 @@
   .btn-danger {
     @apply inline-flex items-center gap-1.5 rounded px-3 py-1.5
            text-sm font-medium transition-colors
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-gtm-unit42Red
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500
            disabled:opacity-50 disabled:cursor-not-allowed
-           bg-gtm-unit42Red text-white hover:bg-[#a33a1e];
+           bg-rose-600 text-white hover:bg-rose-700;
   }
 
   /* Icon / text ghost */
   .btn-ghost {
     @apply inline-flex items-center gap-1.5 rounded px-2 py-1
            text-sm font-medium transition-colors
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-cyber-500
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600
            disabled:opacity-50 disabled:cursor-not-allowed
            text-slate-600 hover:bg-slate-100 hover:text-slate-900
            dark:text-slate-400 dark:hover:bg-zinc-800 dark:hover:text-slate-100;
@@ -115,10 +115,10 @@
     @apply block w-full rounded border border-slate-300 bg-white
            px-3 py-1.5 text-sm text-slate-900
            placeholder-slate-400
-           focus:border-cyber-500 focus:outline-none focus:ring-1 focus:ring-cyber-500
+           focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600
            dark:border-zinc-700 dark:bg-zinc-900 dark:text-white
            dark:placeholder-zinc-500
-           dark:focus:border-cyber-500 dark:focus:ring-cyber-500;
+           dark:focus:border-indigo-500 dark:focus:ring-indigo-500;
   }
 
   .label {
@@ -159,44 +159,39 @@
   }
 
   /* ────────────────────────────────────────────────────────────
-     BADGES — GTM palette (WCAG AA contrast verified)
-     bg opacity kept low so border is the colour signal;
-     text uses full saturated GTM colour (dark) or darkened (light)
+     BADGES — semantic status palette (WCAG AA contrast verified)
+     bg opacity kept low so border is the colour signal
   ──────────────────────────────────────────────────────────── */
   .badge {
     @apply inline-flex items-center rounded px-1.5 py-0.5 text-xs font-semibold;
   }
 
-  /* ok / success → Cortex Intelligence Green (#00CC66)
-     Light: text #00804d (7:1 on white), Dark: text #00CC66 (4.6:1 on zinc-900) */
+  /* ok / success → emerald-500 */
   .badge-green {
     @apply badge
-           bg-[#00CC66]/10 text-[#00804d] border border-[#00CC66]/25
-           dark:bg-[#00CC66]/10 dark:text-[#00CC66] dark:border-[#00CC66]/20;
+           bg-emerald-500/10 text-emerald-700 border border-emerald-500/25
+           dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20;
   }
 
-  /* error / failed → Unit 42 Fire Red (#C84727)
-     Light: text #9e3419 (8:1 on white), Dark: text #e05535 (4.5:1 on zinc-900) */
+  /* error / failed → rose-500 */
   .badge-red {
     @apply badge
-           bg-[#C84727]/10 text-[#9e3419] border border-[#C84727]/25
-           dark:bg-[#C84727]/10 dark:text-[#e05535] dark:border-[#C84727]/20;
+           bg-rose-500/10 text-rose-700 border border-rose-500/25
+           dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20;
   }
 
-  /* warning / rate_limited → Strata Security Yellow (#FFCB06)
-     Light: text #7a6100 (7.5:1 on white), Dark: text #FFCB06 (9:1 on zinc-900) */
+  /* warning / rate_limited → amber-500 */
   .badge-yellow {
     @apply badge
-           bg-[#FFCB06]/10 text-[#7a6100] border border-[#FFCB06]/25
-           dark:bg-[#FFCB06]/10 dark:text-[#FFCB06] dark:border-[#FFCB06]/20;
+           bg-amber-500/10 text-amber-700 border border-amber-500/25
+           dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20;
   }
 
-  /* info / mode → Prisma Cloud Blue (#00C0E8)
-     Light: text #0077a0 (4.6:1 on white), Dark: text #00C0E8 (5.1:1 on zinc-900) */
+  /* info / mode → sky-500 */
   .badge-blue {
     @apply badge
-           bg-[#00C0E8]/10 text-[#0077a0] border border-[#00C0E8]/25
-           dark:bg-[#00C0E8]/10 dark:text-[#00C0E8] dark:border-[#00C0E8]/20;
+           bg-sky-500/10 text-sky-700 border border-sky-500/25
+           dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20;
   }
 
   /* neutral */

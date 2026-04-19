@@ -1,7 +1,7 @@
 export default function Spinner({ size = 4 }: { size?: number }) {
   return (
     <svg
-      className={`animate-spin w-${size} h-${size} text-cyber-500 dark:text-cyber-400`}
+      className={`animate-spin w-${size} h-${size} text-brand-600 dark:text-brand-400`}
       fill="none"
       viewBox="0 0 24 24"
       aria-label="Loading"
