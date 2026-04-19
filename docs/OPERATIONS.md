@@ -6,7 +6,7 @@ This runbook covers initial deployment, master-key management, database backup, 
 
 ## Initial Deployment
 
-### Option 1 — Single Container (SQLite, simplest)
+### Option 1: Single Container (SQLite, simplest)
 
 Generate a master key and start the container:
 
@@ -38,7 +38,7 @@ curl -sf http://localhost:8080/readyz
 
 The SQLite database is written to `/app/data/paic.db` inside the container. The volume `paic-data` persists it across restarts.
 
-### Option 2 — docker-compose (Postgres-backed)
+### Option 2: docker-compose (Postgres-backed)
 
 ```bash
 cd deploy/compose
@@ -64,7 +64,7 @@ docker compose ps
 docker compose logs -f paic
 ```
 
-### Option 3 — pip (air-gapped or development)
+### Option 3: pip (air-gapped or development)
 
 ```bash
 pip install paic
@@ -88,7 +88,7 @@ uv run uvicorn paic.api.main:app --host 0.0.0.0 --port 8080
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `PAIC_MASTER_KEY` | **yes** | — | Base64-encoded 32 bytes. AES-GCM master key for sealing API keys, webhook secrets, SMTP credentials. |
+| `PAIC_MASTER_KEY` | **yes** | (required) | Base64-encoded 32 bytes. AES-GCM master key for sealing API keys, webhook secrets, SMTP credentials. |
 | `PAIC_DATABASE_URL` | no | `sqlite:///./paic.db` | SQLAlchemy URL. Postgres: `postgresql+psycopg://user:pass@host/paic` |
 | `PAIC_BIND_HOST` | no | `0.0.0.0` | Listen address. |
 | `PAIC_BIND_PORT` | no | `8080` | Listen port. |
@@ -112,9 +112,9 @@ kZ3mN9pQrT2uV5wX8yA1bC4dE7fG0hI=
 ```
 
 Store the key in:
-- A secrets manager (HashiCorp Vault, AWS Secrets Manager, Azure Key Vault) — recommended for production.
-- A `.env` file excluded from version control — acceptable for single-operator deployments.
-- A Docker secret or Kubernetes Secret — acceptable for container deployments.
+- A secrets manager (HashiCorp Vault, AWS Secrets Manager, Azure Key Vault): recommended for production.
+- A `.env` file excluded from version control: acceptable for single-operator deployments.
+- A Docker secret or Kubernetes Secret: acceptable for container deployments.
 
 Never commit the master key to git. Verify `.gitignore` covers `.env` before proceeding.
 
@@ -125,7 +125,7 @@ Rotating the master key requires re-encrypting every ciphertext in the database.
 1. Export all tenant API keys while the old key is still active:
 
    ```bash
-   # Using the PAIC admin API — retrieve decrypted keys via a one-off script
+   # Using the PAIC admin API: retrieve decrypted keys via a one-off script
    # or directly via psql/sqlite3 with the old master key loaded
    PAIC_MASTER_KEY=<old_key> python -c "
    from paic.core.crypto import unseal
@@ -171,7 +171,7 @@ Rotating the master key requires re-encrypting every ciphertext in the database.
 The database is a single file. Back it up with an online-safe copy:
 
 ```bash
-# While PAIC is running — SQLite online backup
+# While PAIC is running: SQLite online backup
 sqlite3 /path/to/paic.db ".backup /backup/paic-$(date +%Y%m%d-%H%M%S).db"
 
 # Or stop PAIC first, then copy
@@ -260,7 +260,7 @@ Automate with a daily cron job:
 
 ### Phase 1 (current): Single Replica + DB
 
-The supported topology is **one PAIC process** backed by either SQLite or Postgres. The APScheduler instance runs in-process — there is no external job queue.
+The supported topology is **one PAIC process** backed by either SQLite or Postgres. The APScheduler instance runs in-process. There is no external job queue.
 
 This topology handles:
 - Tens of tenants polling every 15 minutes.
@@ -276,7 +276,7 @@ Phase 2 will introduce scheduler leader election (APScheduler `SQLAlchemyJobStor
 
 ### Load Balancing (stateless API tier only)
 
-The FastAPI request-handling tier is stateless — it reads/writes the DB and holds no in-memory tenant state. If you need to scale API throughput independently of the scheduler, you can run multiple PAIC processes with the environment variable `PAIC_SCHEDULER_ENABLED=false` (Phase 2 feature) to disable the scheduler in all but one designated leader process.
+The FastAPI request-handling tier is stateless: it reads/writes the DB and holds no in-memory tenant state. If you need to scale API throughput independently of the scheduler, you can run multiple PAIC processes with the environment variable `PAIC_SCHEDULER_ENABLED=false` (Phase 2 feature) to disable the scheduler in all but one designated leader process.
 
 ### Resource Sizing
 
@@ -284,9 +284,9 @@ The FastAPI request-handling tier is stateless — it reads/writes the DB and ho
 |---|---|---|
 | PAIC process | 256 MB RAM, 0.25 vCPU | 512 MB RAM, 0.5 vCPU |
 | Postgres | 512 MB RAM | 1 GB RAM + SSD storage |
-| SQLite | — | Not recommended beyond 10 tenants / low write rate |
+| SQLite | (none) | Not recommended beyond 10 tenants / low write rate |
 
-Disk growth: each `Snapshot` row stores the full JSON payload (~10–100 KB per tenant per poll). At 900 s intervals, one tenant generates ~96 snapshots/day. Plan for ~10–100 MB/day per active tenant and implement a retention policy (automated snapshot pruning is a Phase 2 feature).
+Disk growth: each `Snapshot` row stores the full JSON payload (~10-100 KB per tenant per poll). At 900 s intervals, one tenant generates ~96 snapshots/day. Plan for ~10-100 MB/day per active tenant and implement a retention policy (automated snapshot pruning is a Phase 2 feature).
 
 ---
 

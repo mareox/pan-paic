@@ -220,7 +220,7 @@ class _GreedyMerger:
                 break
             new_ratio = (new_covered - announced_ips) / new_covered
             if new_ratio > max_waste:
-                # This merge would breach the budget — and any future merge
+                # This merge would breach the budget, and any future merge
                 # only widens further, but we still need to consider whether a
                 # *different* (more expensive-to-pop, cheaper-to-merge) pair
                 # could remain under budget.  Because cost >= 0 and we always

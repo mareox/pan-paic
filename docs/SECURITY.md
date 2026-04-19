@@ -10,7 +10,7 @@ This document describes the threat model, cryptographic design, webhook signing 
 
 | Asset | Sensitivity | Why |
 |---|---|---|
-| Prisma Access API keys | Critical | A leaked key allows any caller to enumerate all Prisma egress IPs for your tenants and — depending on tenant permissions — make API mutations. |
+| Prisma Access API keys | Critical | A leaked key allows any caller to enumerate all Prisma egress IPs for your tenants and, depending on tenant permissions, make API mutations. |
 | Webhook HMAC secrets | High | A leaked secret allows an attacker to forge webhook payloads that downstream consumers will accept as authentic. |
 | SMTP credentials | High | Leaked credentials enable spam relay and inbox access. |
 | Prefix data | Medium | The full list of Prisma egress IPs is operationally sensitive; exposure assists network reconnaissance. |
@@ -27,9 +27,9 @@ This document describes the threat model, cryptographic design, webhook signing 
 
 ### Out of Scope (Phase 1)
 
-- Multi-user RBAC — Phase 1 is single-operator; there is no user authentication layer within PAIC itself. Deploy behind a reverse proxy (Caddy, nginx) with HTTP Basic Auth or network-level access control.
-- SSO / OIDC — deferred to Phase 2.
-- Audit log — a persistent audit trail of all admin actions is a Phase 2 feature. See placeholder section below.
+- Multi-user RBAC: Phase 1 is single-operator; there is no user authentication layer within PAIC itself. Deploy behind a reverse proxy (Caddy, nginx) with HTTP Basic Auth or network-level access control.
+- SSO / OIDC: deferred to Phase 2.
+- Audit log: a persistent audit trail of all admin actions is a Phase 2 feature. See placeholder section below.
 
 ---
 
@@ -55,7 +55,7 @@ key_bytes = base64.b64decode(raw)
 assert len(key_bytes) == 32, "PAIC_MASTER_KEY must decode to exactly 32 bytes"
 ```
 
-A missing or wrong-length key causes a hard startup failure with a clear error message — the application will not start in a degraded state.
+A missing or wrong-length key causes a hard startup failure with a clear error message. The application will not start in a degraded state.
 
 ### Seal / Unseal Interface
 
@@ -75,7 +75,7 @@ def unseal(ciphertext: bytes, nonce: bytes) -> str:
     """
 ```
 
-Each call to `seal()` generates a fresh 12-byte random nonce (via `os.urandom(12)`). GCM provides both confidentiality and integrity — any bit-flip in the stored ciphertext causes `unseal()` to raise `cryptography.exceptions.InvalidTag` rather than returning corrupt plaintext.
+Each call to `seal()` generates a fresh 12-byte random nonce (via `os.urandom(12)`). GCM provides both confidentiality and integrity: any bit-flip in the stored ciphertext causes `unseal()` to raise `cryptography.exceptions.InvalidTag` rather than returning corrupt plaintext.
 
 ### Key Sourcing Alternatives
 
@@ -103,7 +103,7 @@ header: X-PAIC-Signature: sha256=<hex_digest>
 
 Where:
 - `webhook_secret` is the per-webhook HMAC secret (stored AES-GCM encrypted in `webhook.secret_ciphertext`).
-- `canonical_body` is `json.dumps(payload, separators=(",", ":"), sort_keys=True)` — deterministic serialization.
+- `canonical_body` is `json.dumps(payload, separators=(",", ":"), sort_keys=True)`: deterministic serialization.
 - `ts` is the Unix epoch timestamp (integer seconds) included as `payload["ts"]`.
 - The hex digest is lowercase.
 
@@ -192,7 +192,7 @@ No secret value ever appears in a PAIC log line. The following values are redact
 | Webhook HMAC secret (plaintext) | `[REDACTED]` |
 | SMTP password (plaintext) | `[REDACTED]` |
 
-Ciphertexts (the AES-GCM encrypted bytes stored in the DB) are not logged either — they are binary blobs with no log value.
+Ciphertexts (the AES-GCM encrypted bytes stored in the DB) are not logged either. They are binary blobs with no log value.
 
 The log redaction test in `tests/integration/test_observability.py` asserts that a simulated poll cycle producing a tenant API key in memory does not result in the plaintext key appearing in any log output captured during the test.
 
@@ -237,7 +237,7 @@ Caddy provisions and auto-renews a Let's Encrypt certificate automatically.
 
 - Who performed the action (user identity after OIDC/SSO is added).
 - What resource was affected (tenant ID, webhook ID, etc.).
-- What change was made (old value hashes, new value hashes — never plaintext secrets).
+- What change was made (old value hashes, new value hashes, never plaintext secrets).
 - When (ISO-8601 timestamp with timezone).
 - Source IP.
 

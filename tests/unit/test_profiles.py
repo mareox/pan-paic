@@ -156,7 +156,7 @@ def test_export_returns_yaml(client: TestClient) -> None:
     resp = client.get(f"/api/profiles/{pid}/export")
     assert resp.status_code == 200
     assert "yaml" in resp.headers["content-type"]
-    assert b"# Egress IP Condenser" in resp.content
+    assert b"# PAIC: Profile" in resp.content
     assert "attachment" in resp.headers["content-disposition"]
 
 

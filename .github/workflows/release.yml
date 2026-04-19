@@ -21,7 +21,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/mareox/egress-ip-condenser
+          images: ghcr.io/mareox/pan-paic
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -50,8 +50,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/mareox/egress-ip-condenser:${{ github.ref_name }}
-            ghcr.io/mareox/egress-ip-condenser:latest
+            ghcr.io/mareox/pan-paic:${{ github.ref_name }}
+            ghcr.io/mareox/pan-paic:latest
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

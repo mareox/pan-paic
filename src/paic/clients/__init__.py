@@ -1,4 +1,4 @@
-"""Prisma Access API client — public exports."""
+"""Prisma Access API client: public exports."""
 
 from paic.clients.models import AddressDetail, PrismaResponse, ResultEntry
 from paic.clients.prisma import (

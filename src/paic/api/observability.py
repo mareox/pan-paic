@@ -1,6 +1,6 @@
 """Observability API router: /healthz, /readyz, /metrics.
 
-PAIC v0.2.1 has no SQL — readiness verifies the profiles directory is writable.
+PAIC v0.2.1 has no SQL. Readiness verifies the profiles directory is writable.
 """
 
 import os
@@ -22,7 +22,7 @@ def healthz() -> dict[str, str]:
 
 @router.get("/readyz")
 def readyz() -> JSONResponse:
-    """Readiness probe — verifies the profiles directory is writable."""
+    """Readiness probe: verifies the profiles directory is writable."""
     reasons: list[str] = []
 
     try:

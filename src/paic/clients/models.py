@@ -14,7 +14,7 @@ class AddressDetail(BaseModel):
 
 
 class ResultEntry(BaseModel):
-    """One entry in the result list — represents a zone/service grouping."""
+    """One entry in the result list: represents a zone/service grouping."""
 
     model_config = ConfigDict(extra="allow")
 

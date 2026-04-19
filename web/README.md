@@ -16,7 +16,7 @@ npm run dev
 
 ```bash
 npm run build
-# Output lands in ../src/paic/static/ — shipped inside the Python package
+# Output lands in ../src/paic/static/, shipped inside the Python package
 ```
 
 ## Lint

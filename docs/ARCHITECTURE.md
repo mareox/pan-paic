@@ -12,12 +12,12 @@ Entry point: `src/paic/api/main.py`
 
 - Hosts the FastAPI application that serves the REST API under `/api/`.
 - Serves the pre-built React + Vite + Tailwind static bundle at `/` (mounted as a `StaticFiles` directory after `npm run build`).
-- Exposes `/healthz` (liveness) and `/readyz` (readiness — DB reachable + scheduler running).
+- Exposes `/healthz` (liveness) and `/readyz` (readiness: DB reachable + scheduler running).
 - Exposes `/metrics` (Prometheus text exposition).
 
 Responsibilities:
 - CRUD for tenants, profiles, webhooks.
-- On-demand export (`GET /api/reports/export`) — applies filters, runs the summarization engine, passes output to the requested renderer.
+- On-demand export (`GET /api/reports/export`): applies filters, runs the summarization engine, passes output to the requested renderer.
 - Diff history (`GET /api/tenants/{id}/diffs`).
 - All API keys and secrets leave the API layer only as AES-GCM ciphertext; the plaintext is unsealed in memory only when the Poller needs to call Prisma.
 
@@ -44,7 +44,7 @@ ORM: SQLAlchemy 2 (async engine).
 
 | Table | Purpose |
 |---|---|
-| `tenant` | Tenant config — encrypted API key, poll interval, last fetch status |
+| `tenant` | Tenant config: encrypted API key, poll interval, last fetch status |
 | `snapshot` | Full prefix payload per tenant per fetch |
 | `diff` | Added / removed / unchanged counts per fetch cycle |
 | `profile` | Reusable aggregation + format + filter presets |
@@ -53,7 +53,7 @@ ORM: SQLAlchemy 2 (async engine).
 
 ---
 
-## Sequence Diagram — Poll and Dispatch
+## Sequence Diagram: Poll and Dispatch
 
 ```mermaid
 sequenceDiagram
@@ -139,7 +139,7 @@ src/paic/
 ├── clients/
 │   └── prisma.py        # async httpx client, PrismaResponse, error classes
 ├── aggregation/
-│   └── engine.py        # summarize() — exact/lossless/budget/waste modes
+│   └── engine.py        # summarize(): exact/lossless/budget/waste modes
 ├── renderers/
 │   ├── csv.py
 │   ├── json.py
@@ -160,7 +160,7 @@ src/paic/
 
 | Decision | Rationale |
 |---|---|
-| Single process (scheduler + API in same Python runtime) | Simplifies Phase 1 deployment — one container, no message broker. Multi-replica scheduler leader election is a Phase 2 concern. |
+| Single process (scheduler + API in same Python runtime) | Simplifies Phase 1 deployment: one container, no message broker. Multi-replica scheduler leader election is a Phase 2 concern. |
 | Field-level AES-GCM encryption for API keys | Secrets at rest are never plaintext in the DB. The master key lives only in the environment. |
 | APScheduler (in-process) over Celery/Redis | Reduces operational surface area. Works with both SQLite and Postgres without a separate broker. |
 | netaddr for all IP math | Handles IPv4, IPv6, and CIDR arithmetic uniformly without reinventing merge logic. |

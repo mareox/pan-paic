@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { to: '/profiles', label: 'Profiles' },
 ]
 
-/** EIC geometric wordmark — three stacked bars forming an "E", indigo accent */
+/** EIC geometric wordmark: three stacked bars forming an "E", indigo accent */
 function EicMark({ className = '' }: { className?: string }) {
   return (
     <svg
@@ -43,7 +43,7 @@ export default function Shell({ children, dark, onToggleDark }: ShellProps) {
           <div className="flex items-center gap-2 shrink-0">
             <EicMark />
             <span className="hidden sm:block text-sm font-semibold tracking-tight text-slate-800 dark:text-slate-100 select-none">
-              Egress IP Condenser
+              PAIC
             </span>
           </div>
 
@@ -66,7 +66,7 @@ export default function Shell({ children, dark, onToggleDark }: ShellProps) {
             ))}
           </nav>
 
-          {/* Theme toggle — prominent, ~40×40 hit area */}
+          {/* Theme toggle: prominent, ~40x40 hit area */}
           <button
             onClick={onToggleDark}
             aria-label="Toggle theme"
@@ -77,13 +77,13 @@ export default function Shell({ children, dark, onToggleDark }: ShellProps) {
                        focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
           >
             {dark ? (
-              /* Sun icon — switch to light */
+              /* Sun icon: switch to light */
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round"
                   d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 7a5 5 0 100 10A5 5 0 0012 7z" />
               </svg>
             ) : (
-              /* Moon icon — switch to dark */
+              /* Moon icon: switch to dark */
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round"
                   d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />

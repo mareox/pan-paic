@@ -1,4 +1,4 @@
-"""Shared helper for renderers — coerce a record-like object to a plain dict."""
+"""Shared helper for renderers: coerce a record-like object to a plain dict."""
 
 from __future__ import annotations
 

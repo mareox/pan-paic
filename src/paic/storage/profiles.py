@@ -20,16 +20,16 @@ from paic.api.schemas.profile import Profile
 from paic.core.settings import Settings
 
 _HEADER = """\
-# Egress IP Condenser — Profile
-# Apply this in the UI or via the API. Safe to copy/share — contains zero credentials.
+# PAIC: Profile
+# Apply this in the UI or via the API. Safe to copy/share, contains zero credentials.
 """
 
 _AGGREGATION_COMMENT = """\
 Aggregation: how to collapse the prefix list before rendering.
-  exact     — no aggregation
-  lossless  — merge adjacent prefixes only (no widening)
-  budget    — collapse to at most N prefixes, minimum waste
-  waste     — collapse until waste ratio approaches max_waste"""
+  exact     no aggregation
+  lossless  merge adjacent prefixes only (no widening)
+  budget    collapse to at most N prefixes, minimum waste
+  waste     collapse until waste ratio approaches max_waste"""
 
 _FORMAT_COMMENT = "Output format the consumer expects."
 _FILTER_COMMENT = "Optional filters applied AFTER fetching from Prisma."
@@ -57,7 +57,7 @@ def _slugify(name: str) -> str:
 
 
 class ProfileStore:
-    """File-backed profile repository — one YAML file per profile."""
+    """File-backed profile repository: one YAML file per profile."""
 
     def __init__(self, profiles_dir: Path) -> None:
         self.dir = Path(profiles_dir)
@@ -208,6 +208,6 @@ def _build_doc(profile: Profile) -> Any:
 
 
 def get_profile_store(settings: Settings | None = None) -> ProfileStore:
-    """FastAPI dependency — return a singleton-ish ProfileStore for the active settings."""
+    """FastAPI dependency: return a singleton-ish ProfileStore for the active settings."""
     s = settings or Settings()  # type: ignore[call-arg]
     return ProfileStore(s.profiles_dir)

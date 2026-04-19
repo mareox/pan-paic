@@ -1,4 +1,4 @@
-# Prisma Access IP Console (PAIC) — Product Requirements Document
+# Prisma Access IP Console (PAIC): Product Requirements Document
 
 > Mirror of source PRD as of 2026-04-18. This file is the canonical product specification for Phase 1 MVP.
 
@@ -6,13 +6,13 @@
 
 ## 1. Problem Statement
 
-Palo Alto Networks Prisma Access dynamically allocates egress, loopback, and service IP prefixes across its global backbone. These prefixes change — new regions come online, capacity is added, CIDRs are rotated. Network teams and downstream consumers (firewalls, allowlists, SIEMs, load balancers) need to know the current set of IPs for each service type and react within minutes when the set changes.
+Palo Alto Networks Prisma Access dynamically allocates egress, loopback, and service IP prefixes across its global backbone. These prefixes change: new regions come online, capacity is added, CIDRs are rotated. Network teams and downstream consumers (firewalls, allowlists, SIEMs, load balancers) need to know the current set of IPs for each service type and react within minutes when the set changes.
 
 Today's options are inadequate:
 
-- **Manual downloads** from the Palo Alto support portal — no automation, no change detection, no history.
-- **`curl` scripts** calling `getPrismaAccessIP/v2` directly — single-tenant, no normalization, no diffing, no notifications, no aggregation.
-- **Panorama / PAN-OS push** — not universally available and limited to PAN-OS consumers; cannot feed non-PAN infrastructure.
+- **Manual downloads** from the Palo Alto support portal: no automation, no change detection, no history.
+- **`curl` scripts** calling `getPrismaAccessIP/v2` directly: single-tenant, no normalization, no diffing, no notifications, no aggregation.
+- **Panorama / PAN-OS push**: not universally available and limited to PAN-OS consumers; cannot feed non-PAN infrastructure.
 
 The result is stale allowlists, security gaps, and operational incidents when Prisma rotates IPs without downstream consumers noticing.
 
@@ -22,21 +22,21 @@ The result is stale allowlists, security gaps, and operational incidents when Pr
 
 1. **Single source of truth** for Prisma Access egress, loopback, and service IPs across multiple tenants.
 2. **Automatic change detection** with fan-out notifications (webhook + SMTP) targeting < 20 minutes P95 from Prisma API update to downstream notification delivery.
-3. **Aggregation that fits downstream constraints** — collapse hundreds of prefixes into a vendor-defined ceiling (e.g., ≤ 50) with minimum wasted address space.
-4. **Universal output formats** — CSV, JSON, XML, EDL, YAML, plain text — so any downstream consumer can ingest without transformation.
-5. **Reusable vendor profiles** — configure "Salesforce: max 60 prefixes, EDL, every Sunday 02:00" once and apply it forever.
-6. **Operational simplicity** — one container, one env var (`PAIC_MASTER_KEY`), no external dependencies required beyond a network path to Prisma.
+3. **Aggregation that fits downstream constraints**: collapse hundreds of prefixes into a vendor-defined ceiling (e.g., <= 50) with minimum wasted address space.
+4. **Universal output formats**: CSV, JSON, XML, EDL, YAML, plain text, so any downstream consumer can ingest without transformation.
+5. **Reusable vendor profiles**: configure "Salesforce: max 60 prefixes, EDL, every Sunday 02:00" once and apply it forever.
+6. **Operational simplicity**: one container, one env var (`PAIC_MASTER_KEY`), no external dependencies required beyond a network path to Prisma.
 
 ---
 
 ## 3. Non-Goals
 
-- **Prisma Access configuration management** — PAIC reads IPs; it does not push policy to Panorama or PAN-OS devices (planned Phase 3+).
-- **Multi-user RBAC** — Phase 1 targets single-operator deployments. Authentication is deferred to Phase 2 (OIDC/SSO).
-- **SaaS-hosted variant** — Phase 1 is self-hosted only.
-- **SIEM forwarder / Grafana bundle** — out of scope for Phase 1.
-- **Natural-language query interface** — out of scope for Phase 1.
-- **Shareable signed URLs** — out of scope for Phase 1.
+- **Prisma Access configuration management**: PAIC reads IPs; it does not push policy to Panorama or PAN-OS devices (planned Phase 3+).
+- **Multi-user RBAC**: Phase 1 targets single-operator deployments. Authentication is deferred to Phase 2 (OIDC/SSO).
+- **SaaS-hosted variant**: Phase 1 is self-hosted only.
+- **SIEM forwarder / Grafana bundle**: out of scope for Phase 1.
+- **Natural-language query interface**: out of scope for Phase 1.
+- **Shareable signed URLs**: out of scope for Phase 1.
 
 ---
 
@@ -75,7 +75,7 @@ The result is stale allowlists, security gaps, and operational incidents when Pr
 
 ## 6. Requirements
 
-### P0 — Must Ship in Phase 1 MVP
+### P0: Must Ship in Phase 1 MVP
 
 | # | Requirement |
 |---|---|
@@ -91,7 +91,7 @@ The result is stale allowlists, security gaps, and operational incidents when Pr
 | R-10 | Structured JSON logs. API keys, secrets, passwords redacted to `[REDACTED]` in all log output. |
 | R-11 | Dockerfile (SQLite default) + docker-compose (Postgres) + pip-installable package with `paic serve` CLI entry point. |
 
-### P1 — Target Phase 1, Defer if Necessary
+### P1: Target Phase 1, Defer if Necessary
 
 | # | Requirement |
 |---|---|
@@ -101,7 +101,7 @@ The result is stale allowlists, security gaps, and operational incidents when Pr
 | R-15 | GitHub Actions CI: ruff, mypy, pytest with ≥ 70% coverage on `core`, `aggregation`, `clients`, `renderers`, `notifier`. |
 | R-16 | Documentation: README, ARCHITECTURE.md (sequence diagram), OPERATIONS.md (deploy/backup/key-rotation), SECURITY.md (threat model, AES-GCM, HMAC, redaction). |
 
-### P2 — Phase 2 Backlog
+### P2: Phase 2 Backlog
 
 | # | Requirement |
 |---|---|
@@ -218,7 +218,7 @@ Full threat model, key sourcing options, and verifier sample code: [`docs/SECURI
 | Question | Blocking | Owner | Notes |
 |---|---|---|---|
 | What is the rate limit on `getPrismaAccessIP/v2`? | Yes | Engineering + TAC | Current design assumes 429 handling is sufficient; actual limit unknown. |
-| Does the API response distinguish dedicated vs shared IPs? | No | Engineering + TAC | Relevant for waste calculations — shared IPs should not be widened. |
+| Does the API response distinguish dedicated vs shared IPs? | No | Engineering + TAC | Relevant for waste calculations: shared IPs should not be widened. |
 | IPv6 parity day-1 or v4-only acceptable for Phase 1? | Yes | Engineering | Filtering, aggregation, and EDL must handle IPv6 CIDRs correctly. |
 | Target OIDC provider for Phase 2 auth? | No | Platform admin | Okta, Entra ID, and Google Workspace are all candidates. |
 | Self-hosted only or SaaS-hosted variant in roadmap? | No | Product | SaaS hosting would require multi-tenancy isolation beyond current design. |
@@ -227,7 +227,7 @@ Full threat model, key sourcing options, and verifier sample code: [`docs/SECURI
 
 ## 12. Timeline and Phasing
 
-### Phase 1 MVP — Current
+### Phase 1 MVP: Current
 
 Scope: US-001 through US-015 (P0 mandatory, P1 targeted).
 
@@ -272,7 +272,7 @@ PAIC fills the gap for multi-tenant, multi-consumer, aggregation-aware IP manage
 
 | Risk | Probability | Impact | Mitigation |
 |---|---|---|---|
-| Prisma Access API rate limit causes missed polls | Medium | High | 429 backoff with `last_fetch_status` tracking; alerting via `paic_poll_failures_total`; Phase 2 — adaptive interval. |
+| Prisma Access API rate limit causes missed polls | Medium | High | 429 backoff with `last_fetch_status` tracking; alerting via `paic_poll_failures_total`; Phase 2: adaptive interval. |
 | Master key lost | Low | Critical | Document key backup procedure in OPERATIONS.md; require operator to store in a secrets manager. |
 | Single-process scheduler fails silently | Medium | High | `/readyz` returns 503 if scheduler has not ticked; `paic_poll_failures_total` alert. |
 | IPv6 CIDR merge produces incorrect waste calculation | Low | Medium | Unit tests with IPv6 fixtures; `netaddr` handles IPv6 natively. |
@@ -281,7 +281,7 @@ PAIC fills the gap for multi-tenant, multi-consumer, aggregation-aware IP manage
 
 ---
 
-## Appendix A — Prisma Access API Reference
+## Appendix A: Prisma Access API Reference
 
 ### Endpoint
 

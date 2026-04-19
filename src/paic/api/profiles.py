@@ -1,4 +1,4 @@
-"""Profile CRUD + import/export + render — backed by YAML files on disk.
+"""Profile CRUD + import/export + render, backed by YAML files on disk.
 
 A *Profile* is a saved bundle of query settings: filter spec, aggregation mode,
 optional budget/max_waste, output format. No credentials are persisted.
@@ -134,7 +134,7 @@ def delete_profile(
 
 
 # ---------------------------------------------------------------------------
-# Export / Import — YAML payloads for sharing across deployments
+# Export / Import: YAML payloads for sharing across deployments
 # ---------------------------------------------------------------------------
 
 
@@ -171,7 +171,7 @@ async def import_profile(
 
 
 # ---------------------------------------------------------------------------
-# Render — apply profile settings to live Prisma data
+# Render: apply profile settings to live Prisma data
 # ---------------------------------------------------------------------------
 
 

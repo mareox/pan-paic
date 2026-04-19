@@ -1,4 +1,4 @@
-"""Static file router — mounts the built Vite bundle at '/' if present."""
+"""Static file router: mounts the built Vite bundle at '/' if present."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ def mount_static(app: object) -> None:  # app: FastAPI
     that API routes always take precedence over the catch-all SPA handler.
     """
     if not _STATIC_DIR.exists():
-        logger.info("Static bundle directory %s not found — skipping SPA mount", _STATIC_DIR)
+        logger.info("Static bundle directory %s not found, skipping SPA mount", _STATIC_DIR)
         return
 
     # Mount assets directory separately so it is served with cache headers.
@@ -34,7 +34,7 @@ def mount_static(app: object) -> None:  # app: FastAPI
             name="assets",
         )
 
-    # Mount the root — html=True enables SPA fallback to index.html.
+    # Mount the root: html=True enables SPA fallback to index.html.
     app.mount(  # type: ignore[attr-defined]
         "/",
         StaticFiles(directory=str(_STATIC_DIR), html=True),

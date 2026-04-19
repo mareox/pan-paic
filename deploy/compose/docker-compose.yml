@@ -3,7 +3,7 @@ services:
     build:
       context: ../..
       dockerfile: deploy/docker/Dockerfile
-    image: ghcr.io/mareox/egress-ip-condenser:latest
+    image: ghcr.io/mareox/pan-paic:latest
     restart: unless-stopped
     ports:
       - "8080:8080"

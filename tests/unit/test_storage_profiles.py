@@ -45,7 +45,7 @@ def test_saved_file_contains_header_block(store: ProfileStore) -> None:
     p = _make()
     path = store.save(p)
     text = path.read_text()
-    assert "# Egress IP Condenser — Profile" in text
+    assert "# PAIC: Profile" in text
     assert "Safe to copy/share" in text
 
 
@@ -53,7 +53,7 @@ def test_saved_file_contains_section_comments(store: ProfileStore) -> None:
     p = _make()
     text = store.save(p).read_text()
     assert "Aggregation:" in text
-    assert "exact     — no aggregation" in text
+    assert "exact     no aggregation" in text
     assert "Output format the consumer expects." in text
     assert "csv | json | xml | edl | yaml | plain" in text
     assert "Optional filters applied AFTER fetching from Prisma." in text
@@ -79,7 +79,7 @@ def test_round_trip_preserves_header_after_rewrite(store: ProfileStore) -> None:
     assert loaded is not None
     store.save(loaded)
     text = (store.dir / "salesforce-50.yaml").read_text()
-    assert "# Egress IP Condenser — Profile" in text
+    assert "# PAIC: Profile" in text
 
 
 def test_list_returns_all_profiles(store: ProfileStore) -> None:
@@ -109,7 +109,7 @@ def test_export_returns_raw_yaml_bytes(store: ProfileStore) -> None:
     p = _make()
     store.save(p)
     body = store.export_one(p.id)
-    assert b"# Egress IP Condenser" in body
+    assert b"# PAIC: Profile" in body
     assert p.name.encode() in body
 
 

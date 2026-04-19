@@ -1,4 +1,4 @@
-"""EDL (External Dynamic List) renderer — one prefix per line, no extra tokens."""
+"""EDL (External Dynamic List) renderer: one prefix per line, no extra tokens."""
 
 from __future__ import annotations
 

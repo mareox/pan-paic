@@ -1,4 +1,4 @@
-# Egress IP Condenser
+# PAIC
 
 > **Unofficial.** This project is an independent open-source tool. It is NOT affiliated with, endorsed by, or sponsored by Palo Alto Networks Inc. "Palo Alto Networks", "Prisma", "Prisma Access", "Strata", "Strata Cloud Manager", and "Panorama" are trademarks of Palo Alto Networks Inc., used here only for accurate factual reference to the APIs this tool consumes.
 
@@ -8,11 +8,11 @@ A stateless query tool for Prisma Access egress IPs. Fetches the live prefix lis
 
 Strata Cloud Manager Insights already alerts you when Prisma Access IPs change. What it doesn't do is **collapse 400 prefixes down to 50** so they fit a SaaS vendor's outbound allowlist. That's the gap this tool fills.
 
-- **Four aggregation modes** — exact, lossless merge, budget-driven (max N prefixes, minimum waste), waste-bounded (max waste ratio)
-- **Stateless** — your API key lives in browser sessionStorage and on a single in-flight request. Never written to disk, never logged.
-- **Six output formats** — CSV, JSON, XML, EDL, YAML, plain list
-- **Vendor profiles** — save "Salesforce: max 60 prefixes, EDL" once, apply forever (settings only, zero credentials)
-- **Multi-prod** — built-in selector for `prod`, `prod1`–`prod6`, `china-prod`, plus free-text override for sovereign clouds
+- **Four aggregation modes**: exact, lossless merge, budget-driven (max N prefixes, minimum waste), waste-bounded (max waste ratio)
+- **Stateless**: your API key lives in browser sessionStorage and on a single in-flight request. Never written to disk, never logged.
+- **Six output formats**: CSV, JSON, XML, EDL, YAML, plain list
+- **Vendor profiles**: save "Salesforce: max 60 prefixes, EDL" once, apply forever (settings only, zero credentials)
+- **Multi-prod**: built-in selector for `prod`, `prod1`-`prod6`, `china-prod`, plus free-text override for sovereign clouds
 
 ## Quick Start
 
@@ -21,7 +21,7 @@ docker run -d \
   --name eic \
   -p 8080:8080 \
   -v $(pwd)/profiles:/app/profiles \
-  ghcr.io/mareox/egress-ip-condenser:latest
+  ghcr.io/mareox/pan-paic:latest
 ```
 
 Open `http://localhost:8080`, paste your Prisma Access API key, pick a prod, run a query, download the result.
@@ -50,7 +50,7 @@ You can find your prod in **Strata Cloud Manager → Settings → API Access** (
 Pre-built multi-arch images (`linux/amd64`, `linux/arm64`) are published to GitHub Container Registry on every version tag.
 
 ```bash
-docker pull ghcr.io/mareox/egress-ip-condenser:latest
+docker pull ghcr.io/mareox/pan-paic:latest
 ```
 
 ### Release workflow (automated)
@@ -68,13 +68,13 @@ gh auth token | docker login ghcr.io -u mareox --password-stdin
 
 docker buildx build --platform=linux/amd64,linux/arm64 \
   -f deploy/docker/Dockerfile \
-  -t ghcr.io/mareox/egress-ip-condenser:0.2.1 \
-  -t ghcr.io/mareox/egress-ip-condenser:latest \
+  -t ghcr.io/mareox/pan-paic:0.2.1 \
+  -t ghcr.io/mareox/pan-paic:latest \
   --push .
 ```
 
 After the first push, set the package to public at:
-`https://github.com/users/mareox/packages/container/egress-ip-condenser/settings` → "Change visibility" → Public
+`https://github.com/users/mareox/packages/container/pan-paic/settings` → "Change visibility" → Public
 
 ## Configuration
 
@@ -96,8 +96,8 @@ A profile bundles **everything except the API key**: which filter to apply, whic
 Each profile is one human-readable YAML file in `PAIC_PROFILES_DIR`:
 
 ```yaml
-# Egress IP Condenser — Profile
-# Apply this in the UI or via the API. Safe to copy/share — contains zero credentials.
+# PAIC: Profile
+# Apply this in the UI or via the API. Safe to copy/share, contains zero credentials.
 
 id: 8d4aba63-b802-4e54-ab35-a02d0f68c55d
 name: Salesforce-50
@@ -105,10 +105,10 @@ description: Salesforce upstream allowlist (max 60 prefixes per vendor docs)
 saved_at: '2026-04-19T10:06:28+00:00'
 
 # Aggregation: how to collapse the prefix list before rendering.
-#   exact     — no aggregation
-#   lossless  — merge adjacent prefixes only (no widening)
-#   budget    — collapse to at most N prefixes, minimum waste
-#   waste     — collapse until waste ratio approaches max_waste
+#   exact     no aggregation
+#   lossless  merge adjacent prefixes only (no widening)
+#   budget    collapse to at most N prefixes, minimum waste
+#   waste     collapse until waste ratio approaches max_waste
 mode: budget
 budget: 50
 max_waste:
@@ -123,14 +123,14 @@ filter_spec_json: '{"service_types":["remote_network"]}'
 ### Sharing profiles between deployments
 
 ```bash
-# Export — downloads <slug>.yaml
+# Export: downloads <slug>.yaml
 curl -O http://localhost:8080/api/profiles/<id>/export
 
-# Import — upload someone else's YAML
+# Import: upload someone else's YAML
 curl -F "file=@salesforce-50.yaml" http://localhost:8080/api/profiles/import
 ```
 
-Profiles are pure config — copy the file into another deployment's `profiles/` directory and it's available immediately.
+Profiles are pure config. Copy the file into another deployment's `profiles/` directory and it's available immediately.
 
 ## API surface
 

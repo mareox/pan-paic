@@ -103,7 +103,7 @@ async def fetch_prisma_ips(
 
     Args:
         api_key: Prisma Access API key sent via ``header-api-key``.
-        prod: Prisma cloud selector — used to template the URL as
+        prod: Prisma cloud selector, used to template the URL as
             ``api.<prod>.datapath.prismaaccess.com``.  Defaults to ``"prod"``.
         base_url_override: Full base URL (no path) to use instead of the
             ``prod``-templated URL.  Useful for sovereign clouds and tests.

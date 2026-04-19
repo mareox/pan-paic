@@ -1,4 +1,4 @@
-/** Typed fetch wrapper — raises on non-2xx responses. */
+/** Typed fetch wrapper: raises on non-2xx responses. */
 
 export class ApiError extends Error {
   constructor(

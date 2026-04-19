@@ -1,9 +1,9 @@
 """Stateless query endpoints.
 
 Endpoints:
-    GET  /api/known-prods         — list known Prisma cloud selectors
-    POST /api/query               — fetch live, filter, summarize, render
-    POST /api/query/preview       — same as /api/query but returns the
+    GET  /api/known-prods         - list known Prisma cloud selectors
+    POST /api/query               - fetch live, filter, summarize, render
+    POST /api/query/preview       - same as /api/query but returns the
                                     AggregateResult JSON instead of bytes
                                     (so the UI can preview output size /
                                     waste before downloading).

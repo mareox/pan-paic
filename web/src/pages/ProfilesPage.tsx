@@ -91,7 +91,7 @@ function ProfileModal({ profile, onClose }: { profile: Profile | null; onClose: 
     setForm(prev => ({ ...prev, [k]: e.target.value }))
 
   return (
-    <Modal title={profile ? `Edit — ${profile.name}` : 'Add Profile'} onClose={onClose} size="lg">
+    <Modal title={profile ? `Edit: ${profile.name}` : 'Add Profile'} onClose={onClose} size="lg">
       <form onSubmit={handleSubmit} className="space-y-3">
         {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
@@ -120,7 +120,7 @@ function ProfileModal({ profile, onClose }: { profile: Profile | null; onClose: 
           )}
           {f.mode === 'waste' && (
             <div>
-              <label className="label" htmlFor="p-waste">Max Waste (0–1) *</label>
+              <label className="label" htmlFor="p-waste">Max Waste (0-1) *</label>
               <input id="p-waste" className="input" type="number" min={0} max={1} step={0.01}
                 value={f.max_waste} onChange={set('max_waste')} />
             </div>
@@ -161,10 +161,10 @@ function ProfileRow({ profile, onApply }: { profile: Profile; onApply: () => voi
       <td className="td"><span className="badge-blue">{profile.mode}</span></td>
       <td className="td">{profile.format}</td>
       <td className="td text-xs text-gray-500 dark:text-gray-400">
-        {profile.budget != null ? `${profile.budget} pfx` : profile.max_waste != null ? `${(profile.max_waste * 100).toFixed(0)}%` : '—'}
+        {profile.budget != null ? `${profile.budget} pfx` : profile.max_waste != null ? `${(profile.max_waste * 100).toFixed(0)}%` : '-'}
       </td>
       <td className="td font-mono text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
-        {profile.filter_spec_json ?? '—'}
+        {profile.filter_spec_json ?? '-'}
       </td>
       <td className="td">
         <div className="flex items-center gap-1">
@@ -216,7 +216,7 @@ export default function ProfilesPage() {
           <div className="p-4"><ErrorBanner message={(error as Error).message} /></div>
         ) : !profiles?.length ? (
           <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
-            No profiles yet. Profiles store query settings only — no credentials.
+            No profiles yet. Profiles store query settings only, no credentials.
           </div>
         ) : (
           <div className="overflow-x-auto">

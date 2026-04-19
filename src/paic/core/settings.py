@@ -1,7 +1,7 @@
 """Application settings loaded from environment variables.
 
 PAIC v0.2.1 is fully stateless on the credentials side and uses YAML files for
-profile persistence — no SQL engine.
+profile persistence, no SQL engine.
 """
 
 from pathlib import Path

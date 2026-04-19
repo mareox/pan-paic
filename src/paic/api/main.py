@@ -1,6 +1,6 @@
 """FastAPI application entry point.
 
-PAIC v0.2 — stateless query tool.  Mounts:
+PAIC v0.2: stateless query tool.  Mounts:
 
 * ``/healthz``, ``/readyz``, ``/metrics``  (observability)
 * ``/api/profiles*``                       (settings-only profile CRUD)
@@ -16,7 +16,7 @@ from paic.api.profiles import router as profiles_router
 from paic.api.reports import router as reports_router
 from paic.api.static import mount_static
 
-app = FastAPI(title="Egress IP Condenser", version="0.2.0")
+app = FastAPI(title="PAIC", version="0.2.0")
 
 app.include_router(observability_router)
 app.include_router(profiles_router)

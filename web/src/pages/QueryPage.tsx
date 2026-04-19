@@ -85,7 +85,7 @@ export default function QueryPage() {
   const [downloadBusy, setDownloadBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
-  // Pull the prod registry — combobox suggestions, free-text still allowed.
+  // Pull the prod registry: combobox suggestions, free-text still allowed.
   const { data: prodData } = useQuery({
     queryKey: ['known-prods'],
     queryFn: api.getKnownProds,

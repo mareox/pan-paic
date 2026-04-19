@@ -1,4 +1,4 @@
-"""Plain-text renderer — outputs only prefix strings."""
+"""Plain-text renderer: outputs only prefix strings."""
 
 from __future__ import annotations
 

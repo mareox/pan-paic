@@ -1,4 +1,4 @@
-"""Renderer registry — dispatch render(records, fmt, options) -> bytes."""
+"""Renderer registry: dispatch render(records, fmt, options) -> bytes."""
 
 from __future__ import annotations
 

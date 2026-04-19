@@ -2,10 +2,10 @@
 
 Four modes are supported:
 
-* ``exact``    — return the deduplicated input unchanged.
-* ``lossless`` — :func:`netaddr.cidr_merge`; never widens covered range.
-* ``budget``   — greedy minimum-waste merging until ``<= budget`` prefixes remain.
-* ``waste``    — greedy merging while resulting waste ratio stays ``<= max_waste``.
+* ``exact``    - return the deduplicated input unchanged.
+* ``lossless`` - :func:`netaddr.cidr_merge`; never widens covered range.
+* ``budget``   - greedy minimum-waste merging until ``<= budget`` prefixes remain.
+* ``waste``    - greedy merging while resulting waste ratio stays ``<= max_waste``.
 
 Both greedy modes treat IPv4 and IPv6 inputs as independent universes (a v4
 prefix can never merge with a v6 prefix) and route each universe through the

@@ -13,7 +13,7 @@ VALID_MODES: set[str] = {"exact", "lossless", "budget", "waste"}
 
 
 class Profile(BaseModel):
-    """Persistent profile shape — also the response shape returned by the API."""
+    """Persistent profile shape, also the response shape returned by the API."""
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -53,7 +53,7 @@ class ProfileCreate(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
-    """Request body for PUT /api/profiles/{id} — all fields optional."""
+    """Request body for PUT /api/profiles/{id}: all fields optional."""
 
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=2000)

@@ -206,7 +206,7 @@ class TestWasteMode:
 
     def test_high_max_waste_allows_aggressive_merge(self):
         inp = ["1.1.1.0/32", "1.1.1.1/32", "1.1.1.100/32"]
-        # Allow up to 99% waste — should collapse everything.
+        # Allow up to 99% waste, should collapse everything.
         r = summarize(inp, "waste", max_waste=0.99)
         assert r.output_count <= 2
         # Waste ratio respects the cap.
