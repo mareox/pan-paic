@@ -1,5 +1,5 @@
 {
-  "lastSentAt": "2026-04-19T06:14:51.967Z",
-  "repoSignature": "{\"repo\":\"mareox/egress-ip-condenser\",\"headSha\":\"4b8a7edde83894b232f9914869bbf562bf1fbffe\",\"dirty\":true,\"openPrNumbers\":[],\"openIssueNumbers\":[],\"failingRunIds\":[24607928034,24608111333]}",
+  "lastSentAt": "2026-04-19T08:47:50.044Z",
+  "repoSignature": "{\"repo\":\"mareox/egress-ip-condenser\",\"headSha\":\"c54948c91676c080b494d7adb4745b7930ecb69c\",\"dirty\":true,\"openPrNumbers\":[],\"openIssueNumbers\":[],\"failingRunIds\":[24607928034,24608111333]}",
   "backlogZero": false
 }

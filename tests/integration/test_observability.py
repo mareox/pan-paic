@@ -3,6 +3,7 @@
 import io
 import json
 import logging
+from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
@@ -11,14 +12,10 @@ from fastapi.testclient import TestClient
 from paic.api.observability import router
 from paic.core.logging import RedactionFilter, _JsonFormatter, configure_logging
 
-# ---------------------------------------------------------------------------
-# Test app fixture — mounts the observability router without touching main.py
-# ---------------------------------------------------------------------------
-
 
 @pytest.fixture()
-def app() -> FastAPI:
-    """Minimal FastAPI app that mounts the observability router."""
+def app(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> FastAPI:
+    monkeypatch.setenv("PAIC_PROFILES_DIR", str(tmp_path / "profiles"))
     _app = FastAPI()
     _app.include_router(router)
     return _app
@@ -29,40 +26,23 @@ def client(app: FastAPI) -> TestClient:
     return TestClient(app)
 
 
-# ---------------------------------------------------------------------------
-# /healthz
-# ---------------------------------------------------------------------------
-
-
 def test_healthz_returns_200(client: TestClient) -> None:
     response = client.get("/healthz")
     assert response.status_code == 200
 
 
 def test_healthz_returns_ok_body(client: TestClient) -> None:
-    response = client.get("/healthz")
-    assert response.json() == {"status": "ok"}
+    assert client.get("/healthz").json() == {"status": "ok"}
 
 
-# ---------------------------------------------------------------------------
-# /readyz — v0.2 only checks DB connectivity (default sqlite is always reachable)
-# ---------------------------------------------------------------------------
-
-
-def test_readyz_200_when_db_reachable(client: TestClient) -> None:
+def test_readyz_200_when_profiles_dir_writable(client: TestClient) -> None:
     response = client.get("/readyz")
     assert response.status_code == 200
     assert response.json() == {"status": "ready"}
 
 
-# ---------------------------------------------------------------------------
-# /metrics
-# ---------------------------------------------------------------------------
-
-
 def test_metrics_returns_200(client: TestClient) -> None:
-    response = client.get("/metrics")
-    assert response.status_code == 200
+    assert client.get("/metrics").status_code == 200
 
 
 def test_metrics_content_type(client: TestClient) -> None:
@@ -71,23 +51,14 @@ def test_metrics_content_type(client: TestClient) -> None:
 
 
 def test_metrics_contains_query_metric(client: TestClient) -> None:
-    # Force-import the metrics module so the counter is registered.
     import paic.core.metrics  # noqa: F401
 
-    response = client.get("/metrics")
-    body = response.text
+    body = client.get("/metrics").text
     assert "paic_query_total" in body
 
 
-# ---------------------------------------------------------------------------
-# Logging redaction
-# ---------------------------------------------------------------------------
-
-
 def test_logging_redacts_api_key() -> None:
-    """Messages containing api_key=<secret> must have the value redacted."""
     configure_logging(level="DEBUG")
-
     stream = io.StringIO()
     handler = logging.StreamHandler(stream)
     handler.setFormatter(_JsonFormatter())
@@ -107,7 +78,6 @@ def test_logging_redacts_api_key() -> None:
 
 
 def test_logging_redacts_bearer_token() -> None:
-    """Messages containing 'bearer <token>' must have the token redacted."""
     stream = io.StringIO()
     handler = logging.StreamHandler(stream)
     handler.setFormatter(_JsonFormatter())
@@ -127,9 +97,7 @@ def test_logging_redacts_bearer_token() -> None:
 
 
 def test_logging_output_is_single_line_json() -> None:
-    """Each log record must produce exactly one line of JSON."""
     configure_logging(level="DEBUG")
-
     stream = io.StringIO()
     handler = logging.StreamHandler(stream)
     handler.setFormatter(_JsonFormatter())

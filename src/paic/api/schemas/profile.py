@@ -1,8 +1,8 @@
-"""Pydantic schemas for the Profile resource."""
+"""Pydantic schemas for the Profile resource (file-backed storage, no ORM)."""
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -12,10 +12,27 @@ from paic.renderers import SUPPORTED_FORMATS
 VALID_MODES: set[str] = {"exact", "lossless", "budget", "waste"}
 
 
+class Profile(BaseModel):
+    """Persistent profile shape — also the response shape returned by the API."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str
+    name: str
+    description: str | None = None
+    mode: Literal["exact", "lossless", "budget", "waste"]
+    budget: int | None = Field(default=None, ge=1)
+    max_waste: float | None = Field(default=None, ge=0.0, le=1.0)
+    format: str
+    filter_spec_json: str | None = None
+    saved_at: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))
+
+
 class ProfileCreate(BaseModel):
-    """Request body for creating a profile."""
+    """Request body for POST /api/profiles."""
 
     name: str = Field(..., min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=2000)
     mode: Literal["exact", "lossless", "budget", "waste"]
     budget: int | None = Field(default=None, ge=1)
     max_waste: float | None = Field(default=None, ge=0.0, le=1.0)
@@ -36,9 +53,10 @@ class ProfileCreate(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
-    """Request body for updating a profile (all fields optional)."""
+    """Request body for PUT /api/profiles/{id} — all fields optional."""
 
     name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=2000)
     mode: Literal["exact", "lossless", "budget", "waste"] | None = None
     budget: int | None = Field(default=None, ge=1)
     max_waste: float | None = Field(default=None, ge=0.0, le=1.0)
@@ -52,19 +70,3 @@ class ProfileUpdate(BaseModel):
                 f"format {self.format!r} is not supported. Choose from: {SUPPORTED_FORMATS}"
             )
         return self
-
-
-class ProfileResponse(BaseModel):
-    """Response shape for a Profile."""
-
-    model_config = ConfigDict(from_attributes=True)
-
-    id: str
-    name: str
-    mode: str
-    budget: int | None
-    max_waste: float | None
-    format: str
-    filter_spec_json: str | None
-    created_at: datetime
-    updated_at: datetime

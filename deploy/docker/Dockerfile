@@ -37,6 +37,9 @@ USER paic
 
 EXPOSE 8080
 
+# Profiles live here — operators mount a host dir or named volume to persist them.
+VOLUME ["/app/profiles"]
+
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD python -c 'import urllib.request; urllib.request.urlopen("http://localhost:8080/healthz")'
 
