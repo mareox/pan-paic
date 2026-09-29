@@ -1,7 +1,0 @@
-{
-  "tool_name": "WebFetch",
-  "tool_input_preview": "{\"url\":\"https://pan.dev/prisma-access/api/networking/get-prisma-access-i-ps/\",\"prompt\":\"Extract:\\n1. The exact base URL pattern for the getPrismaAccessIP/v2 endpoint\\n2. Any documentation about a \\\"pr...",
-  "error": "Request failed with status code 404",
-  "timestamp": "2026-04-18T16:54:45.269Z",
-  "retry_count": 1
-}

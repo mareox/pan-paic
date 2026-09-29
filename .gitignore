@@ -19,3 +19,26 @@ dist/
 build/
 src/paic/static/
 .DS_Store
+
+# macOS AppleDouble metadata files
+._*
+
+# OS metadata and editor swap files
+.AppleDouble/
+.LSOverride
+Icon?
+.Spotlight-V100/
+.Trashes/
+.fseventsd/
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*~
+*.swp
+*.swo
+.nfs*
+
+# Agent harness runtime state
+.omc/
+.omx/
